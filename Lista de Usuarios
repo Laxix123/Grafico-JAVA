@@ -1,0 +1,113 @@
+package com.mycompany.taskmanagerapp;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.util.ArrayList;
+
+public class TaskManagerApp {
+    private JFrame frame;
+    private final JPanel mainPanel , taskListPanel , taskDetailPanel;
+    private final ArrayList<String> tasks;
+    private final DefaultListModel<String> taskListModel;
+    private JList<String> taskJList;
+    private JTextArea taskDetailArea;
+    
+    public TaskManagerApp() {
+        frame = new JFrame(" Lista de Uasuarios ");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(1000, 400);
+
+        mainPanel = new JPanel(new BorderLayout());
+        taskListPanel = new JPanel(new BorderLayout());
+        taskDetailPanel = new JPanel(new BorderLayout());
+        tasks = new ArrayList<>();
+        taskListModel = new DefaultListModel<>();
+        taskJList = new JList<>(taskListModel);
+        taskDetailArea = new JTextArea(10, 30);
+        
+        // Configurar panel de la lista de tareas
+        taskJList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        JScrollPane taskScrollPane = new JScrollPane(taskJList);
+        JButton addTaskButton = new JButton("Add Task");
+        JButton removeTaskButton = new JButton("Remove Task");
+        
+        addTaskButton.addActionListener(new AddTaskAction());
+        removeTaskButton.addActionListener(new RemoveTaskAction());
+        
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.add(addTaskButton);
+        buttonPanel.add(removeTaskButton);
+        
+        taskListPanel.add(new JLabel("Task List"), BorderLayout.NORTH);
+        taskListPanel.add(taskScrollPane, BorderLayout.CENTER);
+        taskListPanel.add(buttonPanel, BorderLayout.SOUTH);
+        
+        // Configurar panel de detalles de la tarea
+        taskDetailPanel.add(new JLabel("Task Details"), BorderLayout.NORTH);
+        taskDetailPanel.add(new JScrollPane(taskDetailArea), BorderLayout.CENTER);
+        taskDetailArea.setEditable(false);
+
+        // Cambios de panel según la selección de tarea
+        taskJList.addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                String selectedTask = taskJList.getSelectedValue();
+                if (selectedTask != null) {
+                    taskDetailArea.setText("Details for task: " + selectedTask);
+                } else {
+                    taskDetailArea.setText("");
+                }
+            }
+        });
+
+        // Añadir paneles a la ventana principal usando JSplitPane
+        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, taskListPanel, taskDetailPanel);
+        splitPane.setDividerLocation(200);
+        mainPanel.add(splitPane, BorderLayout.CENTER);
+        
+        // Escucha cambios en el tamaño de la ventana para hacer la interfaz adaptable
+        frame.addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                Dimension size = frame.getSize();
+                if (size.width < 500) {
+                    splitPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
+                    splitPane.setDividerLocation(size.height / 2);
+                } else {
+                    splitPane.setOrientation(JSplitPane.HORIZONTAL_SPLIT);
+                    splitPane.setDividerLocation(200);
+                }
+                frame.revalidate();
+            }
+        });
+
+        frame.add(mainPanel);
+        frame.setVisible(true);
+    }
+
+    private class AddTaskAction implements ActionListener {
+        public void actionPerformed(ActionEvent e) {
+            String task = JOptionPane.showInputDialog(frame, "Enter a new task:");
+            if (task != null && !task.isEmpty()) {
+                tasks.add(task);
+                taskListModel.addElement(task);
+            }
+        }
+    }
+
+    private class RemoveTaskAction implements ActionListener {
+        public void actionPerformed(ActionEvent e) {
+            int selectedTaskIndex = taskJList.getSelectedIndex();
+            if (selectedTaskIndex != -1) {
+                String task = taskListModel.get(selectedTaskIndex);
+                tasks.remove(task);
+                taskListModel.remove(selectedTaskIndex);
+                taskDetailArea.setText("");
+            }
+        }
+    }
+
+   public static void main(String[] args) {
+    new TaskManagerApp();
+}
+
+}
