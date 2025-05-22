@@ -1,0 +1,179 @@
+=========================================================
+// Las librerias y importaciones *
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.util.ArrayList;
+
+=========================================================
+// Variables creadas * 
+private JFrame frame;
+private final JPanel mainPanel , taskListPanel , taskDetailPanel;
+private final ArrayList<String> tasks;
+private final DefaultListModel<String> taskListModel;
+private JList<String> taskJList;
+private JTextArea taskDetailArea;
+
+=========================================================
+
+Crear un metodo constructor primero que nada para crear la base de todo *
+
+=========================================================
+
+frame = new JFrame("Lista de Usuarios");
+
+// Crea la ventana y le pone el título.
+
+=========================================================
+
+frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); 
+
+// Hace que el programa se cierre al cerrar la ventana.
+
+=========================================================
+
+frame.setSize(1000, 400); //Le da un tamaño inicial.
+
+=========================================================
+
+tasks = new ArrayList<>();
+taskListModel = new DefaultListModel<>();
+taskJList = new JList<>(taskListModel);
+taskJList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+// Crea una nueva lista dinámica (vacía) que guardará tus tareas*- crea objetos con esos metodos*- y hacemos que selecciones solo uno a la vez*
+
+=========================================================
+
+JScrollPane taskScrollPane = new JScrollPane(taskJList);
+
+JButton addTaskButton = new JButton("Agregar Nombre");
+JButton removeTaskButton = new JButton("Remover Nombre");
+
+addTaskButton.addActionListener(new AddTaskAction());
+removeTaskButton.addActionListener(new RemoveTaskAction());
+
+// Agrega y Remove , y el addActionListener es un metodo que conecta el botón con una acción especifica que se ejecutara al hacer click,  
+el JScroll es para hacer scroll si hay muchas tareas. osea que si hay muchas tareas cree esa cosa para mover hacia riba o para los lados *
+
+=========================================================
+
+JPanel buttonPanel = new JPanel();
+buttonPanel.add(addTaskButton);
+buttonPanel.add(removeTaskButton);
+
+//Agrupa los botones en un panel horizontal.
+
+=========================================================
+
+taskListPanel.add(new JLabel("Lista de Usuarios"), BorderLayout.NORTH);
+taskListPanel.add(taskScrollPane, BorderLayout.CENTER);
+taskListPanel.add(buttonPanel, BorderLayout.SOUTH);
+
+//Estructura el panel de tareas con:
+
+Título arriba, Lista en el centro, Botones abajo
+
+=========================================================
+
+taskDetailPanel.add(new JLabel("Detalles de Los usuarios"), BorderLayout.NORTH);
+taskDetailPanel.add(new JScrollPane(taskDetailArea), BorderLayout.CENTER);
+taskDetailArea.setEditable(false);
+
+//Muestra los detalles de la tarea seleccionada, No es editable por el usuario
+
+=========================================================
+
+taskJList.addListSelectionListener(e -> {
+    if (!e.getValueIsAdjusting()) {
+        String Seleccion = taskJList.getSelectedValue();
+        if (Seleccion  != null) {
+            taskDetailArea.setText("Los Detalles son : " + Seleccion);
+        } else {
+            taskDetailArea.setText("");
+        }
+    }
+});
+
+// Cuando se elige una tarea en la lista: Se muestra su detalle a la derecha ,Si no hay nada seleccionado, se borra
+=========================================================
+
+JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, taskListPanel, taskDetailPanel);
+splitPane.setDividerLocation(200);
+mainPanel.add(splitPane, BorderLayout.CENTER);
+
+// Usa JSplitPane para que el usuario pueda ajustar el tamaño entre lista y detalles.
+
+=========================================================
+
+frame.addComponentListener(new ComponentAdapter() {
+    @Override
+    public void componentResized(ComponentEvent e) {
+        Dimension size = frame.getSize();
+        if (size.width < 500) {
+            splitPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
+            splitPane.setDividerLocation(size.height / 2);
+        } else {
+            splitPane.setOrientation(JSplitPane.HORIZONTAL_SPLIT);
+            splitPane.setDividerLocation(200);
+        }
+        frame.revalidate();
+    }
+});
+
+// Esto hace que la interfaz se adapte según el tamaño de la ventana:
+
+Si es angosta, se acomoda verticalmente, Si es ancha, vuelve al modo horizontal.
+
+=========================================================
+
+y aquí cierra el constructor finalizando con 
+
+frame.add(mainPanel); // es el panel principal que contiene todo lo demás (como el JSplitPane, 
+y dentro de él los dos subpaneles: lista y detalles), " Esta línea le dice al frame: “Muestra este contenido dentro de mí.” "
+
+frame.setVisible(true); // hace visible el programa 
+
+=========================================================
+
+private class AddTaskAction implements ActionListener {
+        public void actionPerformed(ActionEvent e) {
+            String task = JOptionPane.showInputDialog(frame, "Ingrese el Nombre :");
+            if (task != null && !task.isEmpty()) {
+                tasks.add(task);
+                taskListModel.addElement(task);
+            }
+        }
+    }
+
+// es para mostrar uncuadro de texto para ingresar una nueva tarea , si el usuario escribe algo , se añade a las listas 
+
+=========================================================
+
+private class RemoveTaskAction implements ActionListener {
+        public void actionPerformed(ActionEvent e) {
+            int selectedTaskIndex = taskJList.getSelectedIndex();
+            if (selectedTaskIndex != -1) {
+                String task = taskListModel.get(selectedTaskIndex);
+                tasks.remove(task);
+                taskListModel.remove(selectedTaskIndex);
+                taskDetailArea.setText("");
+            }
+        }
+    }
+
+// Si hay una tarea seleccionada, se elimina de ambas listas, También se limpian los detalles.
+
+
+
+=========================================================
+
+y finalizamos con : 
+
+public static void main(String[] args) {
+    new TaskManagerApp();
+}
+
+//  Punto de inicio del programa. Crea y lanza la ventana.
+=========================================================
